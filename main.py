@@ -3,6 +3,7 @@
 import sys
 
 def ed_mode(filename):
+    currentLns = 0
     while True:
         with open(filename, 'r', encoding='utf-8') as f:
             f.seek(0)  # Move cursor to the beginning of the file
@@ -14,16 +15,21 @@ def ed_mode(filename):
             for i in range(len(fileLine)):
                 print(f"{i+1} | {fileLine[i]}")
             print("==================")
-        currentLns = 0
         while True:
             shinput = input(f'[Ln {currentLns+1}] > ')
             if shinput == '.nextline':
                 currentLns += 1
-                fileLine.append('')
-                pass
-            
+                fileLine.append(' ')
+                
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(fileLine))
+                    f.close()
+                    break
+                break
             elif shinput == '.prevline':
                 currentLns -= 1
+                f.close()
+                break
             else:
                 fileLine[currentLns] = shinput
                 f.close()
@@ -34,7 +40,7 @@ def ed_mode(filename):
                     break
 
 if __name__ == "__main__":
-    print("OmegaEdit alpha-0")
+    print("OmegaEdit alpha-1")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
