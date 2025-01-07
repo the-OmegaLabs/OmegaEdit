@@ -2,6 +2,9 @@
 
 import sys
 
+def printline(line):
+    for i in range(len(line)):
+        print(f"{i + 1} | {line[i]}")
 def ed_mode(filename):
     while True:
         with open(filename, 'r', encoding='utf-8') as f:
@@ -11,8 +14,7 @@ def ed_mode(filename):
             print("\n==================")
             print(filename)
             print("==================")
-            for i in range(len(fileLine)):
-                print(f"{i+1} | {fileLine[i]}")
+            printline(fileLine)
             print("==================")
         currentLns = 0
         while True:
@@ -24,6 +26,10 @@ def ed_mode(filename):
             
             elif shinput == '.prevline':
                 currentLns -= 1
+            elif shinput.startswith('.append '):
+                fileLine[currentLns] += shinput[8:]
+                printline(fileLine)
+
             else:
                 fileLine[currentLns] = shinput
                 f.close()
