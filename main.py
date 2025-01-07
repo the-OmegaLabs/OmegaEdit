@@ -34,8 +34,7 @@ def ed_mode(filename):
                 print("Really?")
                 choice = input('[Y/N] ')
                 if choice.lower() == 'y':
-                    for i in len(currentLns):
-                        currentLns[i] = ''
+                    fileLine = ['']
                     f.close()
 
                     with open(filename, 'w', encoding='utf-8') as f:
