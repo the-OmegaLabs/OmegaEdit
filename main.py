@@ -17,7 +17,7 @@ def ed_mode(filename):
             print("==================")
         while True:
             shinput = input(f'[Ln {currentLns+1}] > ')
-            if shinput == '.nextline':
+            if shinput in ('.nextline', '.nl'):
                 currentLns += 1
                 fileLine.append(' ')
                 
@@ -26,10 +26,21 @@ def ed_mode(filename):
                     f.close()
                     break
                 break
-            elif shinput == '.prevline':
+            elif shinput in ('.prevline', '.pl'):
                 currentLns -= 1
                 f.close()
                 break
+            elif shinput in ('.replace', '.r'):
+                target = input('Target? > ')
+                replace = input('Replace? > ')
+
+                fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
+                f.close()
+
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(fileLine))
+                    f.close()
+                    break
             else:
                 fileLine[currentLns] = shinput
                 f.close()
@@ -40,7 +51,7 @@ def ed_mode(filename):
                     break
 
 if __name__ == "__main__":
-    print("OmegaEdit alpha-1")
+    print("OmegaEdit alpha-2")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
