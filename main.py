@@ -30,6 +30,30 @@ def ed_mode(filename):
                 fileLine[currentLns] += shinput[8:]
                 printline(fileLine)
 
+                f.close()
+                break
+            elif shinput in ('.cleanall'):
+                print("Really?")
+                choice = input('[Y/N] ')
+                if choice.lower() == 'y':
+                    fileLine = ['']
+                    f.close()
+
+                    with open(filename, 'w', encoding='utf-8') as f:
+                        f.write('\n'.join(fileLine))
+                        f.close()
+                        break
+            elif shinput in ('.replace', '.r'):
+                target = input('Target? > ')
+                replace = input('Replace? > ')
+
+                fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
+                f.close()
+
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(fileLine))
+                    f.close()
+                    break
             else:
                 fileLine[currentLns] = shinput
                 f.close()
@@ -40,7 +64,7 @@ def ed_mode(filename):
                     break
 
 if __name__ == "__main__":
-    print("OmegaEdit alpha-0")
+    print("OmegaEdit alpha-1")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
