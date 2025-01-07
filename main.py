@@ -2,39 +2,36 @@
 
 import sys
 
-def printline(line):
-    for i in range(len(line)):
-        print(f"{i + 1} | {line[i]}")
 def ed_mode(filename):
+    currentLns = 0
     while True:
         with open(filename, 'r', encoding='utf-8') as f:
-            f.seek(0)  # Move cursor to the beginning of the file
+            f.seek(0)  
             file = f.read()
             fileLine = file.split('\n')
             print("\n==================")
             print(filename)
             print("==================")
-            printline(fileLine)
+            for i in range(len(fileLine)):
+                print(f"{i+1} | {fileLine[i]}")
             print("==================")
-        currentLns = 0
         while True:
             shinput = input(f'[Ln {currentLns+1}] > ')
-            if shinput == '.nextline':
+            if shinput in ('.nextline', '.nl'):
                 currentLns += 1
-                fileLine.append('')
-                pass
-            
-            elif shinput == '.prevline':
+                fileLine.append(' ')
+                
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write('\n'.join(fileLine))
+                    f.close()
+                    break
+                break
+            elif shinput in ('.prevline', '.pl'):
                 currentLns -= 1
-            elif shinput.startswith('.append '):
-                fileLine[currentLns] += shinput[8:]
-                printline(fileLine)
-
                 f.close()
                 break
             elif shinput in ('.cleanall'):
-                print("Really?")
-                choice = input('[Y/N] ')
+                choice = input('Really? [Y/N] ')
                 if choice.lower() == 'y':
                     fileLine = ['']
                     f.close()
@@ -64,7 +61,7 @@ def ed_mode(filename):
                     break
 
 if __name__ == "__main__":
-    print("OmegaEdit alpha-1")
+    print("OmegaEdit dev commit-7th")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
