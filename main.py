@@ -4,8 +4,10 @@ import sys
 import os
 
 def printAll(fileLine):
+    print("==================")
     for i in range(len(fileLine)):
         print(f"{i + 1} | {fileLine[i]}")
+    print("==================")
 
 def write(filename, fileLine):
     with open(filename, 'w', encoding='utf-8') as f:
@@ -14,6 +16,7 @@ def write(filename, fileLine):
 
 def ed_mode(filename):
     currentLns = 0
+    toggleDisplay = True
     print("\nHINT: type .help to open help menu")
     if os.path.exists(filename):
         pass
@@ -28,29 +31,41 @@ def ed_mode(filename):
             f.seek(0)  
             file = f.read()
             fileLine = file.split('\n')
-            print("==================")
+        
+        if toggleDisplay:
             printAll(fileLine)
-            print("==================")
+            
         # Read shell input
         shinput = input(f'[Ln {currentLns+1}] > ')
         if shinput in ('.nextline', '.nl'):
             currentLns += 1
             if currentLns + 1 > len(fileLine):
                 fileLine.append(' ')
-            
+        
+        elif shinput in ('.show', '.s'):
+            printAll()
+
+        elif shinput in ('.toggled', '.t'):
+            if toggleDisplay:
+                print("Disabled file display")
+                toggleDisplay = False
+            else:
+                print("Enabled file display")
+                toggleDisplay = True
+        
         # Prev line
         elif shinput in ('.prevline', '.pl'):
             currentLns -= 1
 
         # Clean all
-        elif shinput in ('.cleanall','.clearall','.ca'):
+        elif shinput in ('.cleanall','.ca'):
             choice = input('Really? [Y/N] ')
             if choice.lower() == 'y':
                 fileLine = ['']
 
             currentLns = 0
 
-        elif shinput in ('.cleanline','.clearline','.cl'):
+        elif shinput in ('.cleanline','.cl'):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
                 fileLine[currentLns] = ''
@@ -69,6 +84,9 @@ def ed_mode(filename):
     .cleanline, .cl
     .help     , .h
     .replace  , .r
+    .show     , .s
+    .toggled  , .t
+    .quit     , .q
     .append        : .append <text>
             """)
 
@@ -87,7 +105,7 @@ def ed_mode(filename):
         write(filename, fileLine)
 
 if __name__ == "__main__":
-    print("\nOmegaEdit dev commit-7th")
+    print("\nOmegaEdit dev commit-16th")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
