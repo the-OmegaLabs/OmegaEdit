@@ -2,7 +2,15 @@
 
 import sys
 import os
-import utils.StringUtils
+
+def printAll(fileLine):
+    for i in range(len(fileLine)):
+        print(f"{i + 1} | {fileLine[i]}")
+
+def write(filename, fileLine):
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(fileLine))
+        f.close()
 
 def ed_mode(filename):
     currentLns = 0
@@ -21,73 +29,57 @@ def ed_mode(filename):
             file = f.read()
             fileLine = file.split('\n')
             print("==================")
-            print(filename)
+            printAll(fileLine)
             print("==================")
-            utils.StringUtils.printAll(fileLine)
-            print("==================")
-        # Input Module
-        while True:
-            # Read shell input
-            shinput = input(f'[Ln {currentLns+1}] > ')
-            if shinput in ('.nextline', '.nl'):
-                currentLns += 1
+        # Read shell input
+        shinput = input(f'[Ln {currentLns+1}] > ')
+        if shinput in ('.nextline', '.nl'):
+            currentLns += 1
+            if currentLns + 1 > len(fileLine):
                 fileLine.append(' ')
+            
+        # Prev line
+        elif shinput in ('.prevline', '.pl'):
+            currentLns -= 1
+
+        # Clean all
+        elif shinput in ('.cleanall','.clearall','.ca'):
+            choice = input('Really? [Y/N] ')
+            if choice.lower() == 'y':
+                fileLine = ['']
+
+            currentLns = 0
+
+        elif shinput in ('.cleanline','.clearline','.cl'):
+            choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
+            if choice.lower() == 'y':
+                fileLine[currentLns] = ''
                 
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write('\n'.join(fileLine))
-                    f.close()
-                    break
-                break
-            # Prev line
-            elif shinput in ('.prevline', '.pl'):
-                currentLns -= 1
-                f.close()
-                break
-            # Clean all
-            elif shinput in ('.cleanall','.clearall','.cl'):
-                choice = input('Really? [Y/N] ')
-                if choice.lower() == 'y':
-                    fileLine = ['']
-                    f.close()
+        # Help Menu
+        elif shinput in ('.help', '.h'):
+            print("""
+    .nextline , .nl
+    .prevline , .pl
+    .cleanall , .ca
+    .cleanline, .cl
+    .help     , .h
+    .replace  , .r
+    .append        : .append <text>
+            """)
 
-                    with open(filename, 'w', encoding='utf-8') as f:
-                        f.write('\n'.join(fileLine))
-                        f.close()
-                        break
-            # Help Menu
-            elif shinput in ('.help', '.h'):
-                print("""
-                .nextline, .nl
-                .prevline, .pl
-                .cleanall, .ca
-                .help, .h
-                .replace, .r
-                .append
-                """)
-            elif shinput.startswith('.append '):
-                fileLine[currentLns] += shinput[8:]
-                printAll(fileLine)
-            # Replace
-            elif shinput in ('.replace', '.r'):
-                target = input('Target? > ')
-                replace = input('Replace? > ')
+        elif shinput in ('.replace', '.r'):
+            target = input('Target? > ')
+            replace = input('Replace? > ')
 
-                fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
-                f.close()
+            fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
 
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write('\n'.join(fileLine))
-                    f.close()
-                    break
-            # Writing
-            else:
-                fileLine[currentLns] = shinput
-                f.close()
+        # Writing
+        else:
+            fileLine[currentLns] = fileLine[currentLns] + shinput
+            
 
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write('\n'.join(fileLine))
-                    f.close()
-                    break
+        f.close()
+        write(filename, fileLine)
 
 if __name__ == "__main__":
     print("\nOmegaEdit dev commit-7th")
