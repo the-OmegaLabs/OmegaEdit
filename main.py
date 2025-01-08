@@ -44,7 +44,7 @@ def ed_mode(filename):
                 f.close()
                 break
             # Clean all
-            elif shinput in ('.cleanall','.clearall','cl'):
+            elif shinput in ('.cleanall','.clearall','.cl'):
                 choice = input('Really? [Y/N] ')
                 if choice.lower() == 'y':
                     fileLine = ['']
