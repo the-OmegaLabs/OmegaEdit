@@ -2,27 +2,28 @@
 
 import sys
 import os
+import utils.StringUtils
 
 def ed_mode(filename):
     currentLns = 0
+    print("\nHINT: type .help to open help menu")
+    if os.path.exists(filename):
+        pass
+    else:
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write('')
+            f.close()
     while True:
         # Create file if not exists
-        if os.path.exists(filename):
-            pass
-        else:
-            with open(filename, 'w', encoding='utf-8') as f:
-                f.write('')
-                f.close()
         # Read file
         with open(filename, 'r', encoding='utf-8') as f:
             f.seek(0)  
             file = f.read()
             fileLine = file.split('\n')
-            print("\n==================")
+            print("==================")
             print(filename)
             print("==================")
-            for i in range(len(fileLine)):
-                print(f"{i+1} | {fileLine[i]}")
+            utils.StringUtils.printAll(fileLine)
             print("==================")
         # Input Module
         while True:
@@ -53,6 +54,19 @@ def ed_mode(filename):
                         f.write('\n'.join(fileLine))
                         f.close()
                         break
+            # Help Menu
+            elif shinput in ('.help', '.h'):
+                print("""
+                .nextline, .nl
+                .prevline, .pl
+                .cleanall, .ca
+                .help, .h
+                .replace, .r
+                .append
+                """)
+            elif shinput.startswith('.append '):
+                fileLine[currentLns] += shinput[8:]
+                printAll(fileLine)
             # Replace
             elif shinput in ('.replace', '.r'):
                 target = input('Target? > ')
@@ -76,7 +90,7 @@ def ed_mode(filename):
                     break
 
 if __name__ == "__main__":
-    print("OmegaEdit dev commit-7th")
+    print("\nOmegaEdit dev commit-7th")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
