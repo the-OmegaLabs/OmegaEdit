@@ -54,7 +54,12 @@ def ed_mode(filename):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
                 fileLine[currentLns] = ''
-                
+        
+        elif shinput in ('.quit', '.q'):
+            f.close()
+            write(filename, fileLine)
+            exit()
+
         # Help Menu
         elif shinput in ('.help', '.h'):
             print("""
