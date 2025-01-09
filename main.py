@@ -18,6 +18,7 @@ def ed_mode(filename):
     currentLns = 0
     toggleDisplay = True
     print("\nHINT: type .help to open help menu")
+    append_mode = True
     if os.path.exists(filename):
         pass
     else:
@@ -41,7 +42,14 @@ def ed_mode(filename):
             currentLns += 1
             if currentLns + 1 > len(fileLine):
                 fileLine.append(' ')
-        
+        elif shinput in ('.append', '.ap'):
+            if append_mode:
+                append_mode = False
+                print("Disabled append mode")
+            else:
+                append_mode = True
+                print("Enabled append mode")
+
         elif shinput in ('.show', '.s'):
             printAll()
 
@@ -87,7 +95,7 @@ def ed_mode(filename):
     .show     , .s
     .toggled  , .t
     .quit     , .q
-    .append        : .append <text>
+    .append   , .ap
             """)
 
         elif shinput in ('.replace', '.r'):
@@ -98,8 +106,10 @@ def ed_mode(filename):
 
         # Writing
         else:
-            fileLine[currentLns] = fileLine[currentLns] + shinput
-            
+            if append_mode:
+                fileLine[currentLns] = fileLine[currentLns] + shinput
+            else:
+                fileLine[currentLns] = shinput
 
         f.close()
         write(filename, fileLine)
