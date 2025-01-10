@@ -37,7 +37,7 @@ def ed_mode(filename):
             printAll(fileLine)
             
         # Read shell input
-        shinput = input(f'[Ln {currentLns+1}] > ')
+        shinput = input(f'[{currentLns+1}] > ')
         if shinput in ('.nextline', '.nl'):
             currentLns += 1
             if currentLns + 1 > len(fileLine):
@@ -51,7 +51,7 @@ def ed_mode(filename):
                 print("Enabled append mode")
 
         elif shinput in ('.show', '.s'):
-            printAll()
+            pass
 
         elif shinput in ('.toggled', '.t'):
             if toggleDisplay:
@@ -77,11 +77,11 @@ def ed_mode(filename):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
                 fileLine[currentLns] = ''
-        
+      
         elif shinput in ('.quit', '.q'):
             f.close()
             write(filename, fileLine)
-            exit()
+            break
 
         # Help Menu
         elif shinput in ('.help', '.h'):
@@ -113,6 +113,7 @@ def ed_mode(filename):
 
         f.close()
         write(filename, fileLine)
+        os.system('clear')
 
 if __name__ == "__main__":
     print("\nOmegaEdit dev commit-16th")
