@@ -66,14 +66,14 @@ def ed_mode(filename):
             currentLns -= 1
 
         # Clean all
-        elif shinput in ('.cleanall','.ca'):
+        elif shinput in ('.cleanall', '.clearall', '.ca'):
             choice = input('Really? [Y/N] ')
             if choice.lower() == 'y':
                 fileLine = ['']
 
             currentLns = 0
 
-        elif shinput in ('.cleanline','.cl'):
+        elif shinput in ('.cleanline', '.clearline', '.cl'):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
                 fileLine[currentLns] = ''
