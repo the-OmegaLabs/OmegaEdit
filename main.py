@@ -78,14 +78,14 @@ def ed_mode(filename):
         elif shinput in ('.cleanall', '.ca'):
             choice = input('Really clean all lines? [Y/N] ')
             if choice.lower() == 'y':
-                history.append(fileLine[:])  
+                history.append((fileLine[:], currentLns))  
                 fileLine = ['']
                 currentLns = 0
 
         elif shinput in ('.cleanline', '.cl'):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
-                history.append(fileLine[:])  
+                history.append((fileLine[:], currentLns))  
                 fileLine[currentLns] = ''
 
         elif shinput in ('.quit', '.q'):
@@ -114,7 +114,7 @@ def ed_mode(filename):
             """)
 
         elif shinput in ('.duplicate', '.d'):
-            history.append(fileLine[:]) 
+            history.append((fileLine[:], currentLns)) 
             fileLine.insert(currentLns + 1, fileLine[currentLns])
             currentLns += 1
 
@@ -125,13 +125,12 @@ def ed_mode(filename):
 
         elif shinput in ('.undo', '.u'):
             if history:
-                fileLine = history.pop()
-                print("Undo successful.")
-            else:
-                print("No actions to undo.")
+                temp = history.pop()
+                fileLine = temp[0]
+                currentLns = temp[1]
 
         else:
-            history.append(fileLine[:]) 
+            history.append((fileLine[:], currentLns)) 
             if toggleAppend:
                 fileLine[currentLns] += shinput
             else:
