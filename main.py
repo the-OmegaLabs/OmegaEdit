@@ -4,7 +4,6 @@ import sys
 import os
 import utils.CursorLibs as Curs
 import colorama
-import fcntl
 
 colorama.init()
 
@@ -15,7 +14,7 @@ def printAll(fileLine, currentLns):
             currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}'
         else:
             currentSign = '|'
-        lineString = f"{i + 1:>{len(str(len(fileLine)))}}"  # 行号对齐优化
+        lineString = f"{i + 1:>{len(str(len(fileLine)))}}" 
         print(f"{lineString} {currentSign} {fileLine[i]}")
     print("==================")
 
@@ -24,13 +23,6 @@ def write(filename, fileLine):
         f.write('\n'.join(fileLine))
         f.close()
 
-def lock_file(file):
-    try:
-        fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return True
-    except IOError:
-        print("File is already locked by another process.")
-        return False
 
 def ed_mode(filename):
     print("HINT: type .help to open help menu")
@@ -42,17 +34,10 @@ def ed_mode(filename):
     toggleAppend = True
     history = []
 
-    # 文件检查与初始化
     if not os.path.exists(filename):
         open(filename, 'w', encoding='utf-8').close()
 
-    # 打开文件并检查锁
-    with open(filename, 'r+', encoding='utf-8') as f:
-        if not lock_file(f):
-            return
-
     while True:
-        # 读取文件内容
         with open(filename, 'r', encoding='utf-8') as f:
             f.seek(0)
             file = f.read()
@@ -68,7 +53,6 @@ def ed_mode(filename):
         except KeyboardInterrupt:
             exit()
 
-        # 命令逻辑
         if shinput in ('.nextline', '.n'):
             if currentLns + 1 < len(fileLine):
                 currentLns += 1
