@@ -2,3 +2,5 @@
 .idea/vcs.xml
 *.iml
 *.xml
+test.txt
+utils/__pycache__/CursorLibs.cpython-38.pyc
