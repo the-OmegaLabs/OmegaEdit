@@ -83,11 +83,9 @@ def ed_mode(filename):
 
         elif shinput in ('.append', '.ta'):
             toggleAppend = not toggleAppend
-            print("Append mode:", "Enabled" if toggleAppend else "Disabled")
 
         elif shinput in ('.display', '.td'):
             toggleDisplay = not toggleDisplay
-            print("File display:", "Enabled" if toggleDisplay else "Disabled")
 
         elif shinput in ('.prevline', '.p'):
             if currentLns > 0:
@@ -96,14 +94,14 @@ def ed_mode(filename):
         elif shinput in ('.cleanall', '.ca'):
             choice = input('Really clean all lines? [Y/N] ')
             if choice.lower() == 'y':
-                history.append(fileLine[:])  # 保存快照
+                history.append(fileLine[:])  
                 fileLine = ['']
                 currentLns = 0
 
         elif shinput in ('.cleanline', '.cl'):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
-                history.append(fileLine[:])  # 保存快照
+                history.append(fileLine[:])  
                 fileLine[currentLns] = ''
 
         elif shinput in ('.quit', '.q'):
@@ -113,37 +111,32 @@ def ed_mode(filename):
 
         elif shinput in ('.autoclean', '.tc'):
             toggleClean = not toggleClean
-            print("Auto clean screen:", "Enabled" if toggleClean else "Disabled")
 
         elif shinput in ('.help', '.h'):
             print("""
-    .help      (.h)  - Show this help menu
-    .goto      (.g)  - Go to a specific line
-    .nextline  (.n)  - Move to the next line
-    .prevline  (.p)  - Move to the previous line
-    .replace   (.r)  - Replace text on the current line
-    .duplicate (.d)  - Duplicate the current line
-    .quit      (.q)  - Quit the editor
-    .cleanall  (.ca) - Clear all lines
-    .cleanline (.cl) - Clear the current line
-    .display   (.td) - Toggle file display
-    .append    (.ta) - Toggle append mode
-    .autoclean (.tc) - Toggle auto clean screen
-    .undo      (.u)  - Undo the last action
+    .help       (.h)  - Show this help menu
+    .quit       (.q)  - Quit the editor
+    .goto       (.g)  - Go to a specific line
+    .nextline   (.n)  - Move to the next line
+    .prevline   (.p)  - Move to the previous line
+    .replace    (.r)  - Replace text on the current line
+    .duplicate  (.d)  - Duplicate the current line
+    .undo       (.u)  - Undo the last action
+    .cleanall   (.ca) - Clear all lines
+    .cleanline  (.cl) - Clear the current line
+    .display    (.td) - Toggle file display
+    .append     (.ta) - Toggle append mode
+    .autoclean  (.tc) - Toggle auto clean screen
             """)
 
         elif shinput in ('.duplicate', '.d'):
-            history.append(fileLine[:])  # 保存快照
+            history.append(fileLine[:]) 
             fileLine.insert(currentLns + 1, fileLine[currentLns])
             currentLns += 1
 
         elif shinput in ('.replace', '.r'):
-            target = input('Target? ').strip()
-            if not target:
-                print("Target cannot be empty.")
-                continue
-            replace = input('Replace as? ').strip()
-            history.append(fileLine[:])  # 保存快照
+            target = input('Target? ')
+            replace = input('Replace as? ')
             fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
 
         elif shinput in ('.undo', '.u'):
@@ -154,7 +147,7 @@ def ed_mode(filename):
                 print("No actions to undo.")
 
         else:
-            history.append(fileLine[:])  # 保存快照
+            history.append(fileLine[:]) 
             if toggleAppend:
                 fileLine[currentLns] += shinput
             else:
