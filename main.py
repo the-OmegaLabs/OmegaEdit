@@ -12,32 +12,26 @@ except ImportError:
 
 colorama.init()
 
+def create_fill_char():
+    columns = os.get_terminal_size().columns
+    return "=" * columns
 
 def printAll(fileLine, currentLns):
-    fill_char = "=" * (os.get_terminal_size().columns // len("="))
-    fill_char += "="[:os.get_terminal_size().columns % len("=")]
+    fill_char = create_fill_char()
     print(fill_char)
-    for i in range(len(fileLine)):
-        if i == currentLns:
-            currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}'
-        else:
-            currentSign = '|'
-        lineString = f"{i + 1:>{len(str(len(fileLine)))}}"
-        print(f"{lineString} {currentSign} {fileLine[i]}")
+    width = len(str(len(fileLine)))
+    for i, line in enumerate(fileLine):
+        currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}' if i == currentLns else '|'
+        print(f"{i + 1:>{width}} {currentSign} {line}")
     print(fill_char)
-
 
 def write(filename, fileLine):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write('\n'.join(fileLine))
-        f.close()
-
 
 def handle_resize(signum, frame):
     global fill_char
-    fill_char = "=" * (os.get_terminal_size().columns // len("="))
-    fill_char += "="[:os.get_terminal_size().columns % len("=")]
-
+    fill_char = create_fill_char()
 
 def ed_mode(filename):
     global use_autoresize
@@ -53,28 +47,19 @@ def ed_mode(filename):
     if not os.path.exists(filename):
         open(filename, 'w', encoding='utf-8').close()
 
-
     try:
         if use_autoresize:
             signal.signal(signal.SIGWINCH, handle_resize)
     except AttributeError:
         print("      Auto resize is not available in your system, but you can still use the editor.")
         use_autoresize = False
-    except ModuleNotFoundError:
-        pass
-        use_autoresize = False
 
     while True:
-        columns, rows = os.get_terminal_size()
-
         with open(filename, 'r', encoding='utf-8') as f:
-            f.seek(0)
-            file = f.read()
-            fileLine = file.split('\n')
-
-        print(f"Editing {filename}")
+            fileLine = f.read().split('\n')
 
         if toggleDisplay:
+            print(f"Editing {filename}")
             printAll(fileLine, currentLns)
 
         try:
@@ -83,16 +68,17 @@ def ed_mode(filename):
             exit()
 
         if shinput in ('.nextline', '.n'):
-            if currentLns + 1 < len(fileLine):
-                currentLns += 1
-            else:
+            currentLns = min(currentLns + 1, len(fileLine))
+            if currentLns == len(fileLine):
                 fileLine.append('')
-                currentLns = len(fileLine) - 1
 
-        elif shinput.startswith('.goto') or shinput.startswith('.g'):
-            gotoLns = int(shinput.split(' ')[-1]) - 1
-            if 0 <= gotoLns < len(fileLine):
-                currentLns = gotoLns
+        elif shinput.startswith(('.goto', '.g')):
+            try:
+                gotoLns = int(shinput.split(' ')[-1]) - 1
+                if 0 <= gotoLns < len(fileLine):
+                    currentLns = gotoLns
+            except ValueError:
+                print("Invalid line number.")
 
         elif shinput in ('.append', '.ta'):
             toggleAppend = not toggleAppend
@@ -101,24 +87,20 @@ def ed_mode(filename):
             toggleDisplay = not toggleDisplay
 
         elif shinput in ('.prevline', '.p'):
-            if currentLns > 0:
-                currentLns -= 1
+            currentLns = max(currentLns - 1, 0)
 
         elif shinput in ('.cleanall', '.ca'):
-            choice = input('Really clean all lines? [Y/N] ')
-            if choice.lower() == 'y':
+            if input('Really clean all lines? [Y/N] ').lower() == 'y':
                 history.append((fileLine[:], currentLns))
                 fileLine = ['']
                 currentLns = 0
 
         elif shinput in ('.cleanline', '.cl'):
-            choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
-            if choice.lower() == 'y':
+            if input(f'Really clean line {currentLns + 1}? [Y/N] ').lower() == 'y':
                 history.append((fileLine[:], currentLns))
                 fileLine[currentLns] = ''
 
         elif shinput in ('.quit', '.q'):
-            f.close()
             write(filename, fileLine)
             break
 
@@ -150,27 +132,27 @@ def ed_mode(filename):
         elif shinput in ('.replace', '.r'):
             target = input('Target? ')
             replace = input('Replace as? ')
+            history.append((fileLine[:], currentLns))
             fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
 
         elif shinput in ('.undo', '.u'):
             if history:
-                temp = history.pop()
-                fileLine = temp[0]
-                currentLns = temp[1]
+                fileLine, currentLns = history.pop()
+
+        elif shinput in ('.info', '.i'):
+            print(f'Current line: {currentLns + 1}')
+            print(f'Current file: {filename}')
+            print(f'Current lines: {len(fileLine)}')
+            print(f'Append mode: {toggleAppend}')
 
         else:
             history.append((fileLine[:], currentLns))
-            if toggleAppend:
-                fileLine[currentLns] += shinput
-            else:
-                fileLine[currentLns] = shinput
+            fileLine[currentLns] = fileLine[currentLns] + shinput if toggleAppend else shinput
 
         if toggleClean:
             Curs.clear_screen()
 
-        f.close()
         write(filename, fileLine)
-
 
 if __name__ == "__main__":
     print("\nOmegaEdit 0.1")
