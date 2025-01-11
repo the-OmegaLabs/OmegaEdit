@@ -3,17 +3,20 @@
 import sys
 import os
 import utils.CursorLibs as Curs
+import colorama
+
+colorama.init()
 
 def printAll(fileLine, currentLns):
     print("==================")
     for i in range(len(fileLine)):
         if i == currentLns:
-            currentSign = '>'
+            currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}'
         else:
-            currentSign = ' '
+            currentSign = '|'
         lineString = f"{i + 1}".ljust(len(str(len(fileLine))))
         #lineString = i + 1
-        print(f"{currentSign} {lineString} | {fileLine[i]}")
+        print(f"{lineString} {currentSign} {fileLine[i]}")
     print("==================")
 
 def write(filename, fileLine):
@@ -41,7 +44,7 @@ def ed_mode(filename):
             file = f.read()
             fileLine = file.split('\n')
 
-        print(f"Editing {filename}.")
+        print(f"Editing {filename}")
 
         if toggleDisplay:
             printAll(fileLine, currentLns)
@@ -51,7 +54,7 @@ def ed_mode(filename):
         if shinput in ('.nextline', '.n'):
             currentLns += 1
             if currentLns + 1 > len(fileLine):
-                fileLine.append(' ')
+                fileLine.append('')
         elif shinput.startswith('.goto') or shinput.startswith('.g'):
             gotoLns = shinput.split(' ')[-1]
             if gotoLns.isdigit() and int(gotoLns) - 1 < len(fileLine):
@@ -79,7 +82,8 @@ def ed_mode(filename):
         
         # Prev line
         elif shinput in ('.prevline', '.p'):
-            currentLns -= 1
+            if currentLns - 1 != -1:
+                currentLns -= 1
 
         # Clean all
         elif shinput in ('.cleanall', '.clearall', '.ca'):
