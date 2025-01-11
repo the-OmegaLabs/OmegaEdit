@@ -4,6 +4,7 @@ import sys
 import os
 import utils.CursorLibs as Curs
 import colorama
+import fcntl
 
 colorama.init()
 
@@ -14,8 +15,7 @@ def printAll(fileLine, currentLns):
             currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}'
         else:
             currentSign = '|'
-        lineString = f"{i + 1}".ljust(len(str(len(fileLine))))
-        #lineString = i + 1
+        lineString = f"{i + 1:>{len(str(len(fileLine)))}}"  # 行号对齐优化
         print(f"{lineString} {currentSign} {fileLine[i]}")
     print("==================")
 
@@ -24,23 +24,37 @@ def write(filename, fileLine):
         f.write('\n'.join(fileLine))
         f.close()
 
+def lock_file(file):
+    try:
+        fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except IOError:
+        print("File is already locked by another process.")
+        return False
+
 def ed_mode(filename):
     print("HINT: type .help to open help menu")
     print("      You can exit the editor with .quit/.q command.")
+    
     currentLns = 0
     toggleDisplay = True
     toggleClean = True
     toggleAppend = True
-    if os.path.exists(filename):
-        pass
-    else:
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write('')
-            f.close()
+    history = []
+
+    # 文件检查与初始化
+    if not os.path.exists(filename):
+        open(filename, 'w', encoding='utf-8').close()
+
+    # 打开文件并检查锁
+    with open(filename, 'r+', encoding='utf-8') as f:
+        if not lock_file(f):
+            return
+
     while True:
-        # Read file
+        # 读取文件内容
         with open(filename, 'r', encoding='utf-8') as f:
-            f.seek(0)  
+            f.seek(0)
             file = f.read()
             fileLine = file.split('\n')
 
@@ -48,107 +62,112 @@ def ed_mode(filename):
 
         if toggleDisplay:
             printAll(fileLine, currentLns)
-            
-        # Read shell input
-        shinput = input(f'I {currentLns+1} > ')
+
+        try:
+            shinput = input(f'I {currentLns + 1} > ')
+        except KeyboardInterrupt:
+            exit()
+
+        # 命令逻辑
         if shinput in ('.nextline', '.n'):
-            currentLns += 1
-            if currentLns + 1 > len(fileLine):
-                fileLine.append('')
-        elif shinput.startswith('.goto') or shinput.startswith('.g'):
-            gotoLns = shinput.split(' ')[-1]
-            if gotoLns.isdigit() and int(gotoLns) - 1 < len(fileLine):
-                currentLns = int(gotoLns) - 1
-
-        
-        elif shinput in ('.append', '.ta'):
-            if toggleAppend:
-                toggleAppend = False
-                print("Disabled append mode")
+            if currentLns + 1 < len(fileLine):
+                currentLns += 1
             else:
-                toggleAppend = True
-                print("Enabled append mode")
+                fileLine.append('')
+                currentLns = len(fileLine) - 1
 
-        elif shinput in ('.show', '.s'):
-            pass
+        elif shinput.startswith('.goto') or shinput.startswith('.g'):
+            gotoLns = int(shinput.split(' ')[-1]) - 1
+            if 0 <= gotoLns < len(fileLine):
+                currentLns = gotoLns
+
+        elif shinput in ('.append', '.ta'):
+            toggleAppend = not toggleAppend
+            print("Append mode:", "Enabled" if toggleAppend else "Disabled")
 
         elif shinput in ('.display', '.td'):
-            if toggleDisplay:
-                print("Disabled file display")
-                toggleDisplay = False
-            else:
-                print("Enabled file display")
-                toggleDisplay = True
-        
-        # Prev line
+            toggleDisplay = not toggleDisplay
+            print("File display:", "Enabled" if toggleDisplay else "Disabled")
+
         elif shinput in ('.prevline', '.p'):
-            if currentLns - 1 != -1:
+            if currentLns > 0:
                 currentLns -= 1
 
-        # Clean all
-        elif shinput in ('.cleanall', '.clearall', '.ca'):
+        elif shinput in ('.cleanall', '.ca'):
             choice = input('Really clean all lines? [Y/N] ')
             if choice.lower() == 'y':
+                history.append(fileLine[:])  # 保存快照
                 fileLine = ['']
+                currentLns = 0
 
-            currentLns = 0
-
-        elif shinput in ('.cleanline', '.clearline', '.cl'):
+        elif shinput in ('.cleanline', '.cl'):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
+                history.append(fileLine[:])  # 保存快照
                 fileLine[currentLns] = ''
-      
+
         elif shinput in ('.quit', '.q'):
             f.close()
             write(filename, fileLine)
             break
-    
-        elif shinput in ('.autoclean', '.tc'):
-            if toggleDisplay:
-                print("Disabled auto clean screen")
-                toggleDisplay = False
-            else:
-                print("Enabled auto clean screen")
-                toggleDisplay = True
 
-        # Help Menu
+        elif shinput in ('.autoclean', '.tc'):
+            toggleClean = not toggleClean
+            print("Auto clean screen:", "Enabled" if toggleClean else "Disabled")
+
         elif shinput in ('.help', '.h'):
             print("""
-    .goto     , .g <line>
-    .nextline , .n
-    .prevline , .p
-    .help     , .h
-    .replace  , .r
-    .show     , .s
-    .quit     , .q
-    .cleanall , .ca
-    .cleanline, .cl
-    .display  , .td
-    .append   , .ta
-    .autoclean, .tc
+    .help      (.h)  - Show this help menu
+    .goto      (.g)  - Go to a specific line
+    .nextline  (.n)  - Move to the next line
+    .prevline  (.p)  - Move to the previous line
+    .replace   (.r)  - Replace text on the current line
+    .duplicate (.d)  - Duplicate the current line
+    .quit      (.q)  - Quit the editor
+    .cleanall  (.ca) - Clear all lines
+    .cleanline (.cl) - Clear the current line
+    .display   (.td) - Toggle file display
+    .append    (.ta) - Toggle append mode
+    .autoclean (.tc) - Toggle auto clean screen
+    .undo      (.u)  - Undo the last action
             """)
 
-        elif shinput in ('.replace', '.r'):
-            target = input('Target ? ')
-            replace = input('Replace as ? ')
+        elif shinput in ('.duplicate', '.d'):
+            history.append(fileLine[:])  # 保存快照
+            fileLine.insert(currentLns + 1, fileLine[currentLns])
+            currentLns += 1
 
+        elif shinput in ('.replace', '.r'):
+            target = input('Target? ').strip()
+            if not target:
+                print("Target cannot be empty.")
+                continue
+            replace = input('Replace as? ').strip()
+            history.append(fileLine[:])  # 保存快照
             fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
 
-        # Writing
+        elif shinput in ('.undo', '.u'):
+            if history:
+                fileLine = history.pop()
+                print("Undo successful.")
+            else:
+                print("No actions to undo.")
+
         else:
+            history.append(fileLine[:])  # 保存快照
             if toggleAppend:
-                fileLine[currentLns] = fileLine[currentLns] + shinput
+                fileLine[currentLns] += shinput
             else:
                 fileLine[currentLns] = shinput
 
         if toggleClean:
             Curs.clear_screen()
-        
+
         f.close()
         write(filename, fileLine)
 
 if __name__ == "__main__":
-    print("\nOmegaEdit dev commit-16th")
+    print("\nOmegaEdit 0.1")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
