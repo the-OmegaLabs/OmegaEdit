@@ -124,6 +124,13 @@ def ed_mode(filename):
     .autoclean  (.tc) - Toggle auto clean screen
             """)
 
+        elif shinput in ('.insert', '.i'):
+            insCol = int(input(f'Where (0 ~ {len(fileLine[currentLns])}) ? '))
+            insText = input(f'Text ? ')
+
+            string = fileLine[currentLns][:insCol] + insText + fileLine[currentLns][insCol:]
+            fileLine[currentLns] = string
+            
         elif shinput in ('.duplicate', '.d'):
             history.append((fileLine[:], currentLns))
             fileLine.insert(currentLns + 1, fileLine[currentLns])
