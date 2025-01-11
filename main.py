@@ -4,19 +4,28 @@ import sys
 import os
 import utils.CursorLibs as Curs
 import colorama
+try:
+    import signal
+except ImportError:
+    print("HINT: You haven't installed the signal module, so auto resize is not available.")
+    use_autoresize = False
 
 colorama.init()
 
+
 def printAll(fileLine, currentLns):
-    print("==================")
+    fill_char = "=" * (os.get_terminal_size().columns // len("="))
+    fill_char += "="[:os.get_terminal_size().columns % len("=")]
+    print(fill_char)
     for i in range(len(fileLine)):
         if i == currentLns:
             currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}'
         else:
             currentSign = '|'
-        lineString = f"{i + 1:>{len(str(len(fileLine)))}}" 
+        lineString = f"{i + 1:>{len(str(len(fileLine)))}}"
         print(f"{lineString} {currentSign} {fileLine[i]}")
-    print("==================")
+    print(fill_char)
+
 
 def write(filename, fileLine):
     with open(filename, 'w', encoding='utf-8') as f:
@@ -24,10 +33,17 @@ def write(filename, fileLine):
         f.close()
 
 
+def handle_resize(signum, frame):
+    global fill_char
+    fill_char = "=" * (os.get_terminal_size().columns // len("="))
+    fill_char += "="[:os.get_terminal_size().columns % len("=")]
+
+
 def ed_mode(filename):
+    global use_autoresize
     print("HINT: type .help to open help menu")
     print("      You can exit the editor with .quit/.q command.")
-    
+
     currentLns = 0
     toggleDisplay = True
     toggleClean = True
@@ -37,7 +53,20 @@ def ed_mode(filename):
     if not os.path.exists(filename):
         open(filename, 'w', encoding='utf-8').close()
 
+
+    try:
+        if use_autoresize:
+            signal.signal(signal.SIGWINCH, handle_resize)
+    except AttributeError:
+        print("      Auto resize is not available in your system, but you can still use the editor.")
+        use_autoresize = False
+    except ModuleNotFoundError:
+        pass
+        use_autoresize = False
+
     while True:
+        columns, rows = os.get_terminal_size()
+
         with open(filename, 'r', encoding='utf-8') as f:
             f.seek(0)
             file = f.read()
@@ -78,14 +107,14 @@ def ed_mode(filename):
         elif shinput in ('.cleanall', '.ca'):
             choice = input('Really clean all lines? [Y/N] ')
             if choice.lower() == 'y':
-                history.append((fileLine[:], currentLns))  
+                history.append(fileLine[:])
                 fileLine = ['']
                 currentLns = 0
 
         elif shinput in ('.cleanline', '.cl'):
             choice = input(f'Really clean line {currentLns + 1}? [Y/N] ')
             if choice.lower() == 'y':
-                history.append((fileLine[:], currentLns))  
+                history.append(fileLine[:])
                 fileLine[currentLns] = ''
 
         elif shinput in ('.quit', '.q'):
@@ -114,7 +143,7 @@ def ed_mode(filename):
             """)
 
         elif shinput in ('.duplicate', '.d'):
-            history.append((fileLine[:], currentLns)) 
+            history.append(fileLine[:])
             fileLine.insert(currentLns + 1, fileLine[currentLns])
             currentLns += 1
 
@@ -125,12 +154,13 @@ def ed_mode(filename):
 
         elif shinput in ('.undo', '.u'):
             if history:
-                temp = history.pop()
-                fileLine = temp[0]
-                currentLns = temp[1]
+                fileLine = history.pop()
+                print("Undo successful.")
+            else:
+                print("No actions to undo.")
 
         else:
-            history.append((fileLine[:], currentLns)) 
+            history.append(fileLine[:])
             if toggleAppend:
                 fileLine[currentLns] += shinput
             else:
@@ -142,9 +172,11 @@ def ed_mode(filename):
         f.close()
         write(filename, fileLine)
 
+
 if __name__ == "__main__":
     print("\nOmegaEdit 0.1")
     if len(sys.argv) < 2:
         print("Usage: python3 script.py <filename>")
     else:
+        use_autoresize = True
         ed_mode(sys.argv[-1])
