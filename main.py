@@ -135,7 +135,7 @@ def ed_mode(filename):
                 toggleClean = not toggleClean
 
             elif shinput in ('.help', '.h'):
-                print("""
+                input("""
         .help       (.h)  - Show this help menu
         .quit       (.q)  - Quit the editor
         .goto       (.g)  - Go to a specific line
