@@ -142,6 +142,7 @@ def ed_mode(filename):
         .nextline   (.n)  - Move to the next line
         .prevline   (.p)  - Move to the previous line
         .replace    (.r)  - Replace text on the current line
+        .insert     (.i)  - Insert text at a specific column in the current line
         .duplicate  (.d)  - Duplicate the current line
         .undo       (.u)  - Undo the last action
         .cleanall   (.ca) - Clear all lines
@@ -149,15 +150,27 @@ def ed_mode(filename):
         .display    (.td) - Toggle file display
         .append     (.ta) - Toggle append mode
         .autoclean  (.tc) - Toggle auto clean screen
-                """)
+    """)
 
             elif shinput.startswith('.insert '):
                 try:
-                    _, insCol, insText = shinput.split(' ', 2)
+                    parts = shinput.split(' ', 2)  # Split into 3 parts: command, column, text
+                    if len(parts) < 3:
+                        raise ValueError("Missing arguments.")
+                    
+                    _, insCol, insText = parts
                     insCol = int(insCol)
+                    
+                    if insCol < 0 or insCol > len(fileLine[currentLns]):
+                        raise IndexError("Column out of bounds.")
+                    
                     fileLine[currentLns] = fileLine[currentLns][:insCol] + insText + fileLine[currentLns][insCol:]
-                except (ValueError, IndexError):
-                    print("Invalid syntax. Use: .insert <column> <text>")
+                    print("Text inserted successfully.")
+                except ValueError as e:
+                    print(f"Invalid syntax or input: {e}. Use: .insert <column> <text>")
+                except IndexError as e:
+                    print(f"Error: {e}")
+
 
             elif shinput in ('.duplicate', '.d'):
                 history.append((fileLine[:], currentLns))
