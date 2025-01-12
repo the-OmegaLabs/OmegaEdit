@@ -7,14 +7,13 @@ import colorama
 try:
     import signal
 except ImportError:
-    print("HINT: You haven't installed the signal module, so auto resize is not available.")
+    print("HINT: The signal module is unavailable; auto-resize is not supported.")
     use_autoresize = False
 
 colorama.init()
 
 def create_fill_char():
-    columns = os.get_terminal_size().columns
-    return "=" * columns
+    return "=" * os.get_terminal_size().columns
 
 def printAll(fileLine, currentLns):
     fill_char = create_fill_char()
@@ -26,8 +25,11 @@ def printAll(fileLine, currentLns):
     print(fill_char)
 
 def write(filename, fileLine):
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(fileLine))
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(fileLine))
+    except Exception as e:
+        print(f"Error writing to file: {e}")
 
 def handle_resize(signum, frame):
     global fill_char
@@ -35,7 +37,7 @@ def handle_resize(signum, frame):
 
 def ed_mode(filename):
     global use_autoresize
-    print("HINT: type .help to open help menu")
+    print("HINT: type .help to open the help menu")
     print("      You can exit the editor with .quit/.q command.")
 
     currentLns = 0
@@ -45,7 +47,11 @@ def ed_mode(filename):
     history = []
 
     if not os.path.exists(filename):
-        open(filename, 'w', encoding='utf-8').close()
+        try:
+            open(filename, 'w', encoding='utf-8').close()
+        except Exception as e:
+            print(f"Error creating file: {e}")
+            return
 
     try:
         if use_autoresize:
@@ -55,8 +61,12 @@ def ed_mode(filename):
         use_autoresize = False
 
     while True:
-        with open(filename, 'r', encoding='utf-8') as f:
-            fileLine = f.read().split('\n')
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                fileLine = f.read().split('\n')
+        except Exception as e:
+            print(f"Error reading file: {e}")
+            break
 
         if toggleDisplay:
             print(f"Editing {filename}")
@@ -65,7 +75,11 @@ def ed_mode(filename):
         try:
             shinput = input(f'I {currentLns + 1} > ')
         except KeyboardInterrupt:
-            exit()
+            print("\nExiting... Goodbye!")
+            break
+        except EOFError:
+            print("\nInput error detected. Exiting...")
+            break
 
         if shinput in ('.nextline', '.n'):
             currentLns = min(currentLns + 1, len(fileLine))
@@ -77,6 +91,8 @@ def ed_mode(filename):
                 gotoLns = int(shinput.split(' ')[-1]) - 1
                 if 0 <= gotoLns < len(fileLine):
                     currentLns = gotoLns
+                else:
+                    print("Line number out of range.")
             except ValueError:
                 print("Invalid line number.")
 
@@ -124,27 +140,32 @@ def ed_mode(filename):
     .autoclean  (.tc) - Toggle auto clean screen
             """)
 
-        elif shinput.startswith('.insert ', '.i '):
-            insCol = int(shinput.split(' ')[1])
-            insText = shinput.split(' ')[2]
+        elif shinput.startswith('.insert '):
+            try:
+                _, insCol, insText = shinput.split(' ', 2)
+                insCol = int(insCol)
+                fileLine[currentLns] = fileLine[currentLns][:insCol] + insText + fileLine[currentLns][insCol:]
+            except (ValueError, IndexError):
+                print("Invalid syntax. Use: .insert <column> <text>")
 
-            string = fileLine[currentLns][:insCol] + insText + fileLine[currentLns][insCol:]
-            fileLine[currentLns] = string
-            
         elif shinput in ('.duplicate', '.d'):
             history.append((fileLine[:], currentLns))
             fileLine.insert(currentLns + 1, fileLine[currentLns])
             currentLns += 1
 
-        elif shinput.startswith('.replace', '.r'):
-            target = int(shinput.split(' ')[1])
-            replace = shinput.split(' ')[2]
-            history.append((fileLine[:], currentLns))
-            fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
+        elif shinput.startswith('.replace '):
+            try:
+                _, target, replace = shinput.split(' ', 2)
+                history.append((fileLine[:], currentLns))
+                fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
+            except ValueError:
+                print("Invalid syntax. Use: .replace <target> <replacement>")
 
         elif shinput in ('.undo', '.u'):
             if history:
                 fileLine, currentLns = history.pop()
+            else:
+                print("No actions to undo.")
 
         elif shinput in ('.info', '.i'):
             print(f'Current line: {currentLns + 1}')
