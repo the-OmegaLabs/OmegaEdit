@@ -124,9 +124,9 @@ def ed_mode(filename):
     .autoclean  (.tc) - Toggle auto clean screen
             """)
 
-        elif shinput in ('.insert', '.i'):
-            insCol = int(input(f'Where (0 ~ {len(fileLine[currentLns])}) ? '))
-            insText = input(f'Text ? ')
+        elif shinput.startswith('.insert ', '.i '):
+            insCol = int(shinput.split(' ')[1])
+            insText = shinput.split(' ')[2]
 
             string = fileLine[currentLns][:insCol] + insText + fileLine[currentLns][insCol:]
             fileLine[currentLns] = string
@@ -136,9 +136,9 @@ def ed_mode(filename):
             fileLine.insert(currentLns + 1, fileLine[currentLns])
             currentLns += 1
 
-        elif shinput in ('.replace', '.r'):
-            target = input('Target? ')
-            replace = input('Replace as? ')
+        elif shinput.startswith('.replace', '.r'):
+            target = int(shinput.split(' ')[1])
+            replace = shinput.split(' ')[2]
             history.append((fileLine[:], currentLns))
             fileLine[currentLns] = fileLine[currentLns].replace(target, replace)
 
