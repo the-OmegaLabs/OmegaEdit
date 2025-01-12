@@ -1,5 +1,3 @@
-#!/bin/python3
-
 import sys
 import os
 import utils.CursorLibs as Curs
@@ -16,11 +14,13 @@ colorama.init()
 def create_fill_char():
     return "=" * os.get_terminal_size().columns
 
-def printAll(fileLine, currentLns):
+def printAll(fileLine, currentLns, selection=None):
     fill_char = create_fill_char()
     print(fill_char)
     width = len(str(len(fileLine)))
     for i, line in enumerate(fileLine):
+        if selection and selection[0] <= i <= selection[1]:
+            line = f'{colorama.Back.WHITE}{colorama.Fore.BLACK}{line}{colorama.Style.RESET_ALL}'
         currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}' if i == currentLns else '|'
         print(f"{i + 1:>{width}} {currentSign} {line}")
     print(fill_char)
@@ -46,6 +46,8 @@ def ed_mode(filename):
     toggleClean = True
     toggleAppend = True
     history = []
+    selection = None
+    clipboard = None
 
     if not os.path.exists(filename):
         try:
@@ -71,7 +73,7 @@ def ed_mode(filename):
 
         if toggleDisplay:
             print(f"Editing {filename}")
-            printAll(fileLine, currentLns)
+            printAll(fileLine, currentLns, selection)
 
         try:
             shinput = input(f'I {currentLns + 1} > ')
@@ -86,16 +88,49 @@ def ed_mode(filename):
             command = shinput[1:]
             if command in ('quit', 'q'):
                 cursor_mode = False
-            elif command.startswith('select ') or command.startswith('sel '):
-                target1 = command.split(' ')[1]
-                target2 = command.split(' ')[2]
 
+            elif command.startswith('select '):
+                try:
+                    args = command.split(' ')
+                    if len(args) == 2:
+                        target = int(args[1]) - 1
+                        if 0 <= target < len(fileLine):
+                            currentLns = target
+                            selection = None
+                    elif len(args) == 3:
+                        start, end = int(args[1]) - 1, int(args[2]) - 1
+                        if 0 <= start <= end < len(fileLine):
+                            selection = (start, end)
+                        else:
+                            print("Selection range out of bounds.")
+                except ValueError:
+                    print("Invalid line number.")
+
+            elif command == 'copy':
+                if selection:
+                    clipboard = '\n'.join(fileLine[selection[0]:selection[1] + 1])
+                    print("Selection copied to clipboard.")
+                else:
+                    print("No selection to copy.")
+
+            elif command == 'paste':
+                if clipboard:
+                    history.append((fileLine[:], currentLns))
+                    pasteLines = clipboard.split('\n')
+                    if selection:
+                        fileLine = fileLine[:selection[0]] + pasteLines + fileLine[selection[1] + 1:]
+                        currentLns = selection[0] + len(pasteLines) - 1
+                        selection = None
+                    else:
+                        fileLine = fileLine[:currentLns + 1] + pasteLines + fileLine[currentLns + 1:]
+                        currentLns += len(pasteLines)
+                    print("Clipboard content pasted.")
+                else:
+                    print("Clipboard is empty.")
 
         else:
             if shinput in ('.nextline', '.n'):
-                currentLns = min(currentLns + 1, len(fileLine))
-                if currentLns == len(fileLine):
-                    fileLine.append('')
+                currentLns = min(currentLns + 1, len(fileLine) - 1)
 
             elif shinput.startswith(('.goto', '.g')):
                 try:
@@ -150,6 +185,9 @@ def ed_mode(filename):
         .display    (.td) - Toggle file display
         .append     (.ta) - Toggle append mode
         .autoclean  (.tc) - Toggle auto clean screen
+        :select     - Select lines (visual feedback provided)
+        :copy       - Copy selected lines to clipboard
+        :paste      - Paste clipboard content
     """)
 
             elif shinput.startswith('.insert '):
@@ -157,20 +195,19 @@ def ed_mode(filename):
                     parts = shinput.split(' ', 2)  # Split into 3 parts: command, column, text
                     if len(parts) < 3:
                         raise ValueError("Missing arguments.")
-                    
+
                     _, insCol, insText = parts
                     insCol = int(insCol)
-                    
+
                     if insCol < 0 or insCol > len(fileLine[currentLns]):
                         raise IndexError("Column out of bounds.")
-                    
+
                     fileLine[currentLns] = fileLine[currentLns][:insCol] + insText + fileLine[currentLns][insCol:]
                     print("Text inserted successfully.")
                 except ValueError as e:
                     print(f"Invalid syntax or input: {e}. Use: .insert <column> <text>")
                 except IndexError as e:
                     print(f"Error: {e}")
-
 
             elif shinput in ('.duplicate', '.d'):
                 history.append((fileLine[:], currentLns))
