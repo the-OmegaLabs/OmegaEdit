@@ -6,6 +6,3 @@ def clear_screen():
 def clear_line():
     """Clear the current line."""
     print("\033[2K", end="")
-
-if __name__ == "__main__":
-    

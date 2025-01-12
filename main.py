@@ -81,8 +81,16 @@ def ed_mode(filename):
         except EOFError:
             print("\nInput error detected. Exiting...")
             break
+
         if shinput.startswith(':'):
-            pass
+            command = shinput[1:]
+            if command in ('quit', 'q'):
+                cursor_mode = False
+            elif command.startswith('select ') or command.startswith('sel '):
+                target1 = command.split(' ')[1]
+                target2 = command.split(' ')[2]
+
+
         else:
             if shinput in ('.nextline', '.n'):
                 currentLns = min(currentLns + 1, len(fileLine))
