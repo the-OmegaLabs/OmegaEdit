@@ -14,8 +14,10 @@ colorama.init()
 def create_fill_char():
     return "=" * os.get_terminal_size().columns
 
-def printAll(fileLine, currentLns, selection=None):
+def printAll(fileLine, currentLns, selection=None, hint=None):
     fill_char = create_fill_char()
+    if hint:
+        print(hint)
     print(fill_char)
     width = len(str(len(fileLine)))
     for i, line in enumerate(fileLine):
@@ -48,6 +50,7 @@ def ed_mode(filename):
     history = []
     selection = None
     clipboard = None
+    customHint = None
 
     if not os.path.exists(filename):
         try:
@@ -73,7 +76,8 @@ def ed_mode(filename):
 
         if toggleDisplay:
             print(f"Editing {filename}")
-            printAll(fileLine, currentLns, selection)
+            printAll(fileLine, currentLns, selection, customHint)
+            customHint = None
 
         try:
             shinput = input(f'I {currentLns + 1} > ')
@@ -85,7 +89,8 @@ def ed_mode(filename):
             break
 
         if shinput.startswith(':'):
-            command = shinput[1:]
+            command = shinput.split(':')[1]
+            print(command)
             if command in ('quit', 'q'):
                 cursor_mode = False
 
@@ -237,9 +242,10 @@ def ed_mode(filename):
             elif shinput in ('.cursor', '.cur'):
                 if cursor_mode:
                     cursor_mode = False
+                    customHint = "Disabled cursor mode"
                 else:
                     cursor_mode = True
-
+                    customHint = "Disabled cursor mode"
             else:
                 history.append((fileLine[:], currentLns))
                 fileLine[currentLns] = fileLine[currentLns] + shinput if toggleAppend else shinput
