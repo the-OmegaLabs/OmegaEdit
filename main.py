@@ -136,9 +136,6 @@ def ed_mode(filename):
         .display    (.td) - Toggle file display
         .append     (.ta) - Toggle append mode
         .autoclean  (.tc) - Toggle auto clean screen
-        :select     - Select lines (visual feedback provided)
-        :copy       - Copy selected lines to clipboard
-        :paste      - Paste clipboard content
     """)
 
             elif shinput.startswith('.insert '):
