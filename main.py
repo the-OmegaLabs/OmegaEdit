@@ -3,12 +3,6 @@ import os
 import utils.CursorLibs as Curs
 import colorama
 
-try:
-    import signal
-except ImportError:
-    print("HINT: The signal module is unavailable; auto-resize is not supported.")
-    use_autoresize = False
-
 colorama.init()
 
 def create_fill_char():
@@ -59,12 +53,6 @@ def ed_mode(filename):
             print(f"Error creating file: {e}")
             return
 
-    try:
-        if use_autoresize:
-            signal.signal(signal.SIGWINCH, handle_resize)
-    except AttributeError:
-        print("      Auto resize is not available in your system, but you can still use the editor.")
-        use_autoresize = False
 
     while True:
         try:
