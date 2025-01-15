@@ -8,15 +8,15 @@ colorama.init()
 def create_fill_char():
     return "=" * os.get_terminal_size().columns
 
-def printAll(fileLine, currentLns, selection=None, hint=None):
+def printAll(fileLine, currentLns, sectionColA: int, sectionColB: int, hint=None):
     fill_char = create_fill_char()
     if hint:
         print(hint)
     print(fill_char)
     width = len(str(len(fileLine)))
     for i, line in enumerate(fileLine):
-        if selection and selection[0] <= i <= selection[1]:
-            line = f'{colorama.Back.WHITE}{colorama.Fore.BLACK}{line}{colorama.Style.RESET_ALL}'
+        if not sectionColA is None:
+            line = line[:sectionColA] + colorama.Back.WHITE + line[sectionColA:sectionColB] + colorama.Back.RESET + line[sectionColB:]
         currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}' if i == currentLns else '|'
         print(f"{i + 1:>{width}} {currentSign} {line}")
     print(fill_char)
@@ -45,6 +45,8 @@ def ed_mode(filename):
     selection = None
     clipboard = None
     customHint = None
+    sectionColA = None
+    sectionColB = None
 
     if not os.path.exists(filename):
         try:
@@ -64,7 +66,7 @@ def ed_mode(filename):
 
         if toggleDisplay:
             print(f"Editing {filename}")
-            printAll(fileLine, currentLns, selection, customHint)
+            printAll(fileLine, currentLns, sectionColA, sectionColB, customHint)
             customHint = None
 
         try:
@@ -136,7 +138,19 @@ def ed_mode(filename):
         .display    (.td) - Toggle file display
         .append     (.ta) - Toggle append mode
         .autoclean  (.tc) - Toggle auto clean screen
+        .select    (.sel) - Select texts
     """)
+
+            elif shinput.startswith('.sel '):
+                args = shinput.split(' ')
+                sectionColA = int(args[-2])
+                sectionColB = int(args[-1])
+
+            elif shinput.startswith('.unsel'):
+                sectionColA = None
+                sectionColB = None
+    
+
 
             elif shinput.startswith('.insert '):
                 try:
