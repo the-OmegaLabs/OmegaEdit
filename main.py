@@ -89,49 +89,7 @@ def ed_mode(filename):
             break
 
         if shinput.startswith(':'):
-            command = shinput.split(':')[1]
-            print(command)
-            if command in ('quit', 'q'):
-                cursor_mode = False
-
-            elif command.startswith('select '):
-                try:
-                    args = command.split(' ')
-                    if len(args) == 2:
-                        target = int(args[1]) - 1
-                        if 0 <= target < len(fileLine):
-                            currentLns = target
-                            selection = None
-                    elif len(args) == 3:
-                        start, end = int(args[1]) - 1, int(args[2]) - 1
-                        if 0 <= start <= end < len(fileLine):
-                            selection = (start, end)
-                        else:
-                            print("Selection range out of bounds.")
-                except ValueError:
-                    print("Invalid line number.")
-
-            elif command == 'copy':
-                if selection:
-                    clipboard = '\n'.join(fileLine[selection[0]:selection[1] + 1])
-                    print("Selection copied to clipboard.")
-                else:
-                    print("No selection to copy.")
-
-            elif command == 'paste':
-                if clipboard:
-                    history.append((fileLine[:], currentLns))
-                    pasteLines = clipboard.split('\n')
-                    if selection:
-                        fileLine = fileLine[:selection[0]] + pasteLines + fileLine[selection[1] + 1:]
-                        currentLns = selection[0] + len(pasteLines) - 1
-                        selection = None
-                    else:
-                        fileLine = fileLine[:currentLns + 1] + pasteLines + fileLine[currentLns + 1:]
-                        currentLns += len(pasteLines)
-                    print("Clipboard content pasted.")
-                else:
-                    print("Clipboard is empty.")
+            pass
 
         else:
             if shinput in ('.nextline', '.n'):
