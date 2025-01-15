@@ -16,7 +16,8 @@ def printAll(fileLine, currentLns, sectionColA: int, sectionColB: int, hint=None
     width = len(str(len(fileLine)))
     for i, line in enumerate(fileLine):
         if not sectionColA is None:
-            line = line[:sectionColA] + colorama.Back.WHITE + line[sectionColA:sectionColB] + colorama.Back.RESET + line[sectionColB:]
+            if sectionColB is not None and sectionColB >= 0:
+                line = line[:sectionColA] + colorama.Back.WHITE + colorama.Fore.BLACK + line[sectionColA:sectionColB] + colorama.Fore.RESET + colorama.Back.RESET + line[sectionColB:]
         currentSign = f'{colorama.Style.BRIGHT}|{colorama.Style.RESET_ALL}' if i == currentLns else '|'
         print(f"{i + 1:>{width}} {currentSign} {line}")
     print(fill_char)
@@ -143,8 +144,17 @@ def ed_mode(filename):
 
             elif shinput.startswith('.sel '):
                 args = shinput.split(' ')
-                sectionColA = int(args[-2])
-                sectionColB = int(args[-1])
+                try:
+                    sectionColA = int(args[-2])
+                    sectionColB = int(args[-1])
+                except ValueError:
+                    customHint = "Invalid column number.(1"
+                    sectionColA = 0
+                    sectionColB = None
+                except IndexError:
+                    customHint =  "Invalid column number.(2"
+                    sectionColA = 0
+                    sectionColB = None
 
             elif shinput.startswith('.unsel'):
                 sectionColA = None
@@ -189,12 +199,6 @@ def ed_mode(filename):
                     fileLine, currentLns = history.pop()
                 else:
                     print("No actions to undo.")
-
-            elif shinput in ('.info', '.i'):
-                print(f'Current line: {currentLns + 1}')
-                print(f'Current file: {filename}')
-                print(f'Current lines: {len(fileLine)}')
-                print(f'Append mode: {toggleAppend}')
 
             elif shinput in ('.cursor', '.cur'):
                 if cursor_mode:
