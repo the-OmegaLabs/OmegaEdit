@@ -1,2 +1,2 @@
 <img align="left" width="150" height="150" align="left" style="float: left; margin: 0 10px 0 0;" src="https://github.com/the-OmegaLabs/OmegaEdit/blob/main/icon.png?raw=true"> <h1>OmegaEdit</h1>
-<img align="left" src="https://img.shields.io/badge/Made%20with-Python-green?style=for-the-badge&logo=python&logoColor=green"><img src="https://img.shields.io/badge/Required-Linux-greenen?style=for-the-badge&logo=linux&logoColor=green"> *A file editor designed for Fast editing.*
+<img align="left" src="https://img.shields.io/badge/Made%20with-Python-green?style=for-the-badge&logo=python&logoColor=green"><img src="https://img.shields.io/badge/Required-Linux-greenen?style=for-the-badge&logo=linux&logoColor=green"> *A file editor designed for fast editing.*
